@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+
+        <!-- Customer Payment Form with Product Category -->
+        <record id="view_account_payment_form_category" model="ir.ui.view">
+            <field name="name">account.payment.form.category</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_form"/>
+            <field name="arch" type="xml">
+                <field name="date" position="after">
+                    <field name="product_category_id" string="Category"/>
+                </field>
+            </field>
+        </record>
+
+        <!-- Customer Payment Tree View with Product Category -->
+        <record id="view_account_payment_tree_category" model="ir.ui.view">
+            <field name="name">account.payment.tree.category</field>
+            <field name="model">account.payment</field>
+            <field name="inherit_id" ref="account.view_account_payment_tree"/>
+            <field name="arch" type="xml">
+                <field name="partner_id" position="after">
+                    <field name="product_category_id" string="Category" optional="show"/>
+                </field>
+            </field>
+        </record>
+
+    </data>
+</odoo>

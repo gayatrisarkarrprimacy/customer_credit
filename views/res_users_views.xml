@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Add fields to user form -->
+        <record id="view_users_form_credit_fields" model="ir.ui.view">
+            <field name="name">res.users.form.credit.fields</field>
+            <field name="model">res.users</field>
+            <field name="inherit_id" ref="base.view_users_form"/>
+            <field name="arch" type="xml">
+                <notebook position="after">
+                    <group string="Credit Management Access">
+                        <field name="is_sales_person_credit" string="Ignore Credit Limit"/>
+                        <field name="is_accounting_person_credit" string="Ignore Overdue Receivable"/>
+                    </group>
+                </notebook>
+            </field>
+        </record>
+    </data>
+</odoo>

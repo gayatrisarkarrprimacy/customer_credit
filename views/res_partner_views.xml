@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <record id="view_partner_form_credit" model="ir.ui.view">
+            <field name="name">res.partner.form.credit</field>
+            <field name="model">res.partner</field>
+            <field name="inherit_id" ref="base.view_partner_form"/>
+            <field name="priority">20</field>
+            <field name="arch" type="xml">
+
+<!--                &lt;!&ndash;  Remove inherited field that doesn't exist in your DB &ndash;&gt;-->
+<!--                <xpath expr="//field[@name='partner_company_registry_placeholder']" position="replace"/>-->
+
+                <!-- Add License fields after category_id - only for customers -->
+                <xpath expr="//field[@name='category_id']" position="after">
+                    <field name="license_number"
+                           string="License Number"
+                           placeholder="Enter license number"
+                           invisible="supplier_rank > 0"/>
+                    <field name="license_valid_upto"
+                           string="License Valid Upto"
+                           invisible="supplier_rank > 0"/>
+                </xpath>
+
+                <notebook position="inside">
+                    <page string="Credit Limit" name="credit_info" invisible="not is_company and parent_id or supplier_rank > 0">
+                        <field name="credit_line_ids" nolabel="1" groups="base.group_system">
+                            <list string="Credit Lines" editable="bottom">
+                                <field name="product_category_id" string="Category"/>
+                                <field name="credit_limit" string="Credit Limit" widget="monetary"/>
+                                <field name="credit_used" string="Credit Used" readonly="1" widget="monetary"/>
+                                <field name="credit_remaining" string="Credit Remaining" readonly="1" widget="monetary"/>
+                            </list>
+                        </field>
+
+                        <field name="credit_line_ids" nolabel="1" groups="!base.group_system,base.group_user" readonly="1">
+                            <list string="Credit Lines">
+                                <field name="product_category_id" string="Category"/>
+                                <field name="credit_limit" string="Credit Limit" widget="monetary"/>
+                                <field name="credit_used" string="Credit Used" widget="monetary"/>
+                                <field name="credit_remaining" string="Credit Remaining" widget="monetary"/>
+                            </list>
+                        </field>
+                    </page>
+                </notebook>
+
+            </field>
+        </record>
+    </data>
+</odoo>

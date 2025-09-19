@@ -1,0 +1,154 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Main Sale Order Form with Role-Based Button Control -->
+        <record id="view_order_form_product_category" model="ir.ui.view">
+            <field name="name">sale.order.form.product.category</field>
+            <field name="model">sale.order</field>
+            <field name="inherit_id" ref="sale.view_order_form"/>
+            <field name="arch" type="xml">
+
+                <!-- Add buttons in header -->
+                <xpath expr="//header" position="inside">
+                    <!-- Check Credit Limit button (for all users) -->
+                    <button name="action_check_credit_limit"
+                            string="Check Credit Score"
+                            type="object"
+                            class="btn-primary"
+                            invisible="not show_check_credit_button"/>
+
+                    <!-- Credit Override button - visibility controlled by Python computed field -->
+                    <button name="action_approve_credit_override"
+                            string="Override Credit Limit"
+                            type="object"
+                            class="btn-warning"
+                            invisible="not show_credit_override_button"
+                            confirm="Are you sure you want to override the credit limit for this order?"/>
+
+                    <!-- Overdue Check button - visibility controlled by Python computed field -->
+                    <button name="action_approve_overdue_check"
+                            string="Approve Overdue Check"
+                            type="object"
+                            class="btn-info"
+                            invisible="not show_overdue_check_button"
+                            confirm="Are you sure you want to approve this order despite overdue amount?"/>
+
+                    <!-- Auto-refresh button for users -->
+                    <button name="update_button_visibility"
+                            string="🔄"
+                            type="object"
+                            class="btn-sm btn-secondary"
+                            title="Refresh buttons"
+                            invisible="show_check_credit_button or show_confirm_button"/>
+
+                    <!-- Confirm button (shows after all checks pass or approvals given) -->
+                    <button name="action_confirm"
+                            string="Confirm"
+                            type="object"
+                            class="btn-primary"
+                            context="{'validate_analytic': True}"
+                            invisible="not show_confirm_button"
+                            confirm="Are you sure you want to confirm this sales order?"/>
+
+                    <!-- Hidden fields for button visibility and status tracking -->
+                    <field name="show_check_credit_button" invisible="1"/>
+                    <field name="show_credit_override_button" invisible="1"/>
+                    <field name="show_overdue_check_button" invisible="1"/>
+                    <field name="show_confirm_button" invisible="1"/>
+                    <field name="credit_checked" invisible="1"/>
+                    <field name="credit_exceeded" invisible="1"/>
+                    <field name="credit_override_approved" invisible="1"/>
+                    <field name="has_overdue" invisible="1"/>
+                    <field name="overdue_check_approved" invisible="1"/>
+                    <field name="customer_overdue_amount" invisible="1"/>
+                </xpath>
+
+                <!-- Hide BOTH original Confirm buttons completely -->
+                <xpath expr="//button[@name='action_confirm'][@id='action_confirm']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+                <xpath expr="//button[@name='action_confirm'][not(@id)]" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <!-- Add Product Category field after business_unit -->
+                <xpath expr="//field[@name='business_unit']" position="after">
+                    <field name="product_category_id" string="Product Category"/>
+
+                    <!-- Add Payment Terms field right after Product Category -->
+                    <field name="payment_term_id" placeholder="Immediate"
+                           options="{'no_open': True, 'no_create': True}"/>
+
+                    <!-- Add credit info fields after Payment Terms -->
+                    <field name="credit_info_visible" invisible="1"/>
+                    <field name="assigned_limit"
+                           string="Assigned Limit"
+                           readonly="1"
+                           widget="monetary"
+                           options="{'currency_field': 'currency_id'}"
+                           invisible="not credit_info_visible"/>
+                    <field name="limit_used"
+                           string="Limit Used"
+                           readonly="1"
+                           widget="monetary"
+                           options="{'currency_field': 'currency_id'}"
+                           invisible="not credit_info_visible"/>
+                    <field name="limit_remaining"
+                           string="Limit Remaining"
+                           readonly="1"
+                           widget="monetary"
+                           options="{'currency_field': 'currency_id'}"
+                           invisible="not credit_info_visible"/>
+
+                    <!-- Add overdue amount field -->
+                    <field name="customer_overdue_amount"
+                           string="Customer Overdue Amount"
+                           readonly="1"
+                           widget="monetary"
+                           options="{'currency_field': 'currency_id'}"
+                           invisible="not credit_info_visible"
+                           class="text-danger"/>
+                </xpath>
+
+                <!-- Hide the original payment_term_id field in the order_details group -->
+                <xpath expr="//group[@name='order_details']//field[@name='payment_term_id']" position="attributes">
+                    <attribute name="invisible">1</attribute>
+                </xpath>
+
+                <!-- DIRECT modification of order line product field -->
+                <xpath expr="//field[@name='order_line']" position="replace">
+                    <field name="order_line" widget="section_and_note_one2many" mode="list">
+                        <list string="Order Lines" editable="bottom">
+                            <control>
+                                <create name="add_product_control" string="Add a product"/>
+                                <create name="add_section_control" string="Add a section"
+                                        context="{'default_display_type': 'line_section'}"/>
+                                <create name="add_note_control" string="Add a note"
+                                        context="{'default_display_type': 'line_note'}"/>
+                            </control>
+
+                            <field name="sequence" widget="handle"/>
+
+                            <!-- Product field with dynamic domain - Shows products from selected category and ALL its children -->
+                            <field name="product_id"
+                                   string="Product"
+                                   context="{'partner_id': parent.partner_id, 'quantity': product_uom_qty, 'pricelist': parent.pricelist_id, 'uom':product_uom, 'company_id': parent.company_id}"
+                                   domain="[('sale_ok', '=', True), ('categ_id', 'child_of', parent.product_category_id)] if parent.product_category_id else [('id', '=', False)]"
+                                   options="{'no_open': True, 'no_create': True}"
+                                   force_save="1"/>
+
+                            <field name="name" widget="section_and_note_text"/>
+                            <field name="product_uom_qty" string="Quantity"/>
+                            <field name="product_uom" groups="uom.group_uom"/>
+                            <field name="price_unit" string="Unit Price"/>
+                            <field name="tax_id" widget="many2many_tags" string="Taxes"
+                                   context="{'active_test': False}"/>
+                            <field name="price_subtotal" string="Subtotal" widget="monetary"/>
+                            <field name="price_total" string="Total" widget="monetary"/>
+                        </list>
+                    </field>
+                </xpath>
+            </field>
+        </record>
+    </data>
+</odoo>

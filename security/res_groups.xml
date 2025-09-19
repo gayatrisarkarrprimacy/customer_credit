@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data>
+        <!-- Credit Management Category -->
+        <record id="module_category_credit_management" model="ir.module.category">
+            <field name="name">Credit Management</field>
+            <field name="description">Credit Management Access Rights</field>
+            <field name="sequence">15</field>
+        </record>
+
+        <!-- Super Admin Group -->
+        <record id="group_credit_super_admin" model="res.groups">
+            <field name="name">Super Admin</field>
+            <field name="category_id" ref="module_category_credit_management"/>
+            <field name="comment">Super Admin for Credit Management</field>
+        </record>
+
+    </data>
+</odoo>

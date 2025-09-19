@@ -1,0 +1,4 @@
+id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
+access_res_partner_credit_line_all,access_res_partner_credit_line_all,model_res_partner_credit_line,,1,1,1,1
+access_module_category_credit_management,Credit Management Category Access,base.model_ir_module_category,base.group_system,1,0,0,0
+access_res_users_credit_fields,Credit Users Access,base.model_res_users,,1,1,0,0
